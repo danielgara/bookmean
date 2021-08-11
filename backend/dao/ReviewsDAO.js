@@ -1,16 +1,16 @@
 import mongodb from 'mongodb';
 
-const { ObjectId } = mongodb;
-
-let reviews;
-
 export default class ReviewsDAO {
+
+  static reviews;
+  static ObjectId = mongodb.ObjectID;
+
   static async injectDB(conn) {
-    if (reviews) {
+    if (ReviewsDAO.reviews) {
       return;
     }
     try {
-      reviews = await conn.db(process.env.MOVIEREVIEWS_NS).collection('reviews');
+      ReviewsDAO.reviews = await conn.db(process.env.MOVIEREVIEWS_NS).collection('reviews');
     } catch (e) {
       console.error(`unable to establish connection handle in reviewDAO: ${e}`);
     }
@@ -23,9 +23,9 @@ export default class ReviewsDAO {
         user_id: user._id,
         date,
         review,
-        movie_id: ObjectId(movieId),
+        movie_id: ReviewsDAO.ObjectId(movieId),
       };
-      return await reviews.insertOne(reviewDoc);
+      return await ReviewsDAO.reviews.insertOne(reviewDoc);
     } catch (e) {
       console.error(`unable to post review: ${e}`);
       return { error: e };
@@ -34,7 +34,7 @@ export default class ReviewsDAO {
 
   static async updateReview(reviewId, userId, review, date) {
     try {
-      const updateResponse = await reviews.updateOne(
+      const updateResponse = await ReviewsDAO.reviews.updateOne(
         { user_id: userId, _id: ObjectId(reviewId) },
         { $set: { review, date } },
       );
@@ -47,7 +47,7 @@ export default class ReviewsDAO {
 
   static async deleteReview(reviewId, userId) {
     try {
-      const deleteResponse = await reviews.deleteOne({
+      const deleteResponse = await ReviewsDAO.reviews.deleteOne({
         _id: ObjectId(reviewId),
         user_id: userId,
       });

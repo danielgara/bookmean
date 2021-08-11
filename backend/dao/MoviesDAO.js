@@ -1,16 +1,16 @@
 import mongodb from 'mongodb';
 
-const ObjectId = mongodb.ObjectID;
-
-let movies;
-
 export default class MoviesDAO {
+
+  static movies;
+  static ObjectId = mongodb.ObjectID;
+
   static async injectDB(conn) {
-    if (movies) {
+    if (MoviesDAO.movies) {
       return;
     }
     try {
-      movies = await conn.db(process.env.MOVIEREVIEWS_NS)
+      MoviesDAO.movies = await conn.db(process.env.MOVIEREVIEWS_NS)
         .collection('movies');
     } catch (e) {
       console.error(`unable to connect in MoviesDAO: ${e}`);
@@ -19,20 +19,20 @@ export default class MoviesDAO {
 
   static async getMovieById(id) {
     try {
-      return await movies.aggregate([
+      return await MoviesDAO.movies.aggregate([
         {
           $match: {
-            _id: new ObjectId(id),
+            _id: new MoviesDAO.ObjectId(id),
           },
         },
         {
           $lookup:
-                    {
-                      from: 'reviews',
-                      localField: '_id',
-                      foreignField: 'movie_id',
-                      as: 'reviews',
-                    },
+          {
+            from: 'reviews',
+            localField: '_id',
+            foreignField: 'movie_id',
+            as: 'reviews',
+          },
         },
       ]).next();
     } catch (e) {
@@ -57,12 +57,12 @@ export default class MoviesDAO {
 
     let cursor;
     try {
-      cursor = await movies
+      cursor = await MoviesDAO.movies
         .find(query)
         .limit(moviesPerPage)
         .skip(moviesPerPage * page);
       const moviesList = await cursor.toArray();
-      const totalNumMovies = await movies.countDocuments(query);
+      const totalNumMovies = await MoviesDAO.movies.countDocuments(query);
       return { moviesList, totalNumMovies };
     } catch (e) {
       console.error(`Unable to issue find command, ${e}`);
@@ -73,7 +73,7 @@ export default class MoviesDAO {
   static async getRatings() {
     let ratings = [];
     try {
-      ratings = await movies.distinct('rated');
+      ratings = await MoviesDAO.movies.distinct('rated');
       return ratings;
     } catch (e) {
       console.error('unable to get ratings, $(e)');
