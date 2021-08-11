@@ -1,8 +1,8 @@
 import mongodb from 'mongodb';
 import dotenv from 'dotenv';
 import app from './server.js';
-import MoviesDAO from './dao/moviesDAO.js';
-import ReviewsDAO from './dao/reviewsDAO.js';
+import MoviesDAO from './dao/MoviesDAO.js';
+import ReviewsDAO from './dao/ReviewsDAO.js';
 
 async function main() {
   dotenv.config();
