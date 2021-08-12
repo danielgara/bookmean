@@ -1,8 +1,8 @@
 import mongodb from 'mongodb';
 
 export default class MoviesDAO {
-
   static movies;
+
   static ObjectId = mongodb.ObjectID;
 
   static async injectDB(conn) {

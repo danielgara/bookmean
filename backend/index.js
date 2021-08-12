@@ -1,26 +1,48 @@
-import mongodb from 'mongodb';
+import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
-import app from './server.js';
+import mongodb from 'mongodb';
+import MoviesRoute from './api/MoviesRoute.js';
 import MoviesDAO from './dao/MoviesDAO.js';
 import ReviewsDAO from './dao/ReviewsDAO.js';
 
-async function main() {
-  dotenv.config();
-  const client = new mongodb.MongoClient(process.env.MOVIEREVIEWS_DB_URI);
-  const port = process.env.PORT || 8000;
+class Index {
+  static app = express();
 
-  try {
-    // Connect to the MongoDB cluster
-    await client.connect();
-    await MoviesDAO.injectDB(client);
-    await ReviewsDAO.injectDB(client);
-    app.listen(port, () => {
-      console.log(`server is running on port:${port}`);
+  static router = express.Router();
+
+  static main() {
+    dotenv.config();
+    Index.setUpServer();
+    Index.setUpDatabase();
+  }
+
+  static setUpServer() {
+    Index.app.use(cors());
+    Index.app.use(express.json());
+
+    Index.app.use('/api/v1/movies', MoviesRoute.configRoutes(Index.router));
+    Index.app.use('*', (req, res) => {
+      res.status(404).json({ error: 'not found' });
     });
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
+  }
+
+  static async setUpDatabase() {
+    const client = new mongodb.MongoClient(process.env.MOVIEREVIEWS_DB_URI);
+    const port = process.env.PORT || 8000;
+    try {
+      // Connect to the MongoDB cluster
+      await client.connect();
+      await MoviesDAO.injectDB(client);
+      await ReviewsDAO.injectDB(client);
+      Index.app.listen(port, () => {
+        console.log(`server is running on port:${port}`);
+      });
+    } catch (e) {
+      console.error(e);
+      process.exit(1);
+    }
   }
 }
 
-main().catch(console.error);
+Index.main();

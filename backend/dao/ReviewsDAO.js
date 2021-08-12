@@ -1,8 +1,8 @@
 import mongodb from 'mongodb';
 
 export default class ReviewsDAO {
-
   static reviews;
+
   static ObjectId = mongodb.ObjectID;
 
   static async injectDB(conn) {
@@ -35,7 +35,7 @@ export default class ReviewsDAO {
   static async updateReview(reviewId, userId, review, date) {
     try {
       const updateResponse = await ReviewsDAO.reviews.updateOne(
-        { user_id: userId, _id: ObjectId(reviewId) },
+        { user_id: userId, _id: ReviewsDAO.ObjectId(reviewId) },
         { $set: { review, date } },
       );
       return updateResponse;
@@ -48,7 +48,7 @@ export default class ReviewsDAO {
   static async deleteReview(reviewId, userId) {
     try {
       const deleteResponse = await ReviewsDAO.reviews.deleteOne({
-        _id: ObjectId(reviewId),
+        _id: ReviewsDAO.ObjectId(reviewId),
         user_id: userId,
       });
       return deleteResponse;
